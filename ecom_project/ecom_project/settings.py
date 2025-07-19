@@ -32,7 +32,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["ecom-1qve.onrender.com", "localhost","ecom-shoe-b2nx.onrender.com", "127.0.0.1","ecom-shoe-no8p.onrender.com"]
+ALLOWED_HOSTS = ["ecom-1qve.onrender.com", "localhost","ecom-shoe-b2nx.onrender.com", "127.0.0.1","ecom-shoe-no8p.onrender.com","ecom-2-backend.onrender.com"]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://ecom-client-iqeq.onrender.com",
