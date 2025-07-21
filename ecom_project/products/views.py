@@ -26,6 +26,13 @@ from .serializers import (
     ProductVariantSerializer,
 )
 from products.filters import ProductFilter
+from django.http import JsonResponse
+from django.urls import path
+
+def health_view(request):
+    return JsonResponse({"status": "ok", "uptime": "healthy"}, status=200)
+
+
 
 # Pagination
 class StandardPagination(PageNumberPagination):
