@@ -112,9 +112,9 @@ if DATABASE_URL:
     # In production: use Postgres
     DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
-    }
+   }
 else:
-    # Local dev: fallback to SQLite
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -123,7 +123,17 @@ else:
     }
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-
+CLOUDINARY_STORAGE = {
+    'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
+    'OPTIONS': {
+        'default_transformations': [
+            {
+                'fetch_format': 'webp',   # Serve images as WebP
+                'quality': 'auto:eco',    # Optimize for bandwidth
+            }
+        ]
+    }
+}
 
 CACHES = {
     "default": {
