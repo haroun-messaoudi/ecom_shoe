@@ -209,3 +209,25 @@ class ProductVariantsView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         variants = ProductVariantSerializer(product.variants.all(), many=True).data
         return Response({"variants": variants})
+    
+
+class ProductSimilaritiesView(APIView):
+    """
+    /api/products/<id>/similar/
+    Returns similar products based on category.
+    """
+    def get(self, request, id):
+        try:
+            product = Product.objects.get(id=id)
+        except Product.DoesNotExist:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        similar_products = (
+            Product.objects
+                .filter(category=product.category)
+                .exclude(id=product.id)
+                .only('id', 'name', 'price', 'discount_price', 'main_image')
+                .order_by('?')[:4]
+        )
+        serializer = ProductListSerializer(similar_products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
