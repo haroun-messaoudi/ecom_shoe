@@ -226,7 +226,7 @@ class ProductSimilaritiesView(APIView):
             Product.objects
                 .filter(category=product.category)
                 .exclude(id=product.id)
-                .only('id', 'name', 'price', 'discount_price', 'main_image')
+                .only('id', 'name', 'price', 'discount_price', 'category', 'main_image', 'created_at')
                 .order_by('?')[:4]
         )
         serializer = ProductListSerializer(similar_products, many=True)
