@@ -1,9 +1,10 @@
-from django_filters import rest_framework as filters
+from django.db.models import Case, When, F, DecimalField
+import django_filters as filters
 from .models import Product
 
 class ProductFilter(filters.FilterSet):
-    price_min = filters.NumberFilter(field_name="price", lookup_expr='gte')
-    price_max = filters.NumberFilter(field_name="price", lookup_expr='lte')
+    price_min = filters.NumberFilter(field_name="effective_price", lookup_expr='gte')
+    price_max = filters.NumberFilter(field_name="effective_price", lookup_expr='lte')
     in_stock = filters.BooleanFilter(method='filter_in_stock')
 
     class Meta:

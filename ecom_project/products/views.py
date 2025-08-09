@@ -45,21 +45,24 @@ FIVE_MINUTES = 60 * 5
 HEIGHT_MINUTES = 60 * 8    
 SHORT_CACHE = 60 * 3      
 
+from django.db.models import Case, When, F, DecimalField
+
 class ProductListView(ListAPIView):
     serializer_class = ProductListSerializer
     pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProductFilter
     search_fields = ['name']
-    ordering_fields = ['effective_price', 'created_at', 'name']  # Use effective_price for ordering
-    
+    ordering_fields = ['effective_price', 'created_at', 'name']
+
     def get_queryset(self):
         return (
             Product.objects
                 .annotate(
                     effective_price=Case(
                         When(discount_price__isnull=False, then=F('discount_price')),
-                        default=F('price')
+                        default=F('price'),
+                        output_field=DecimalField()
                     )
                 )
                 .only('id', 'name', 'price', 'discount_price', 'category', 'main_image', 'created_at')
