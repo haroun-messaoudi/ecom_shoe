@@ -28,6 +28,7 @@ from .serializers import (
 from products.filters import ProductFilter
 from django.http import JsonResponse
 from django.urls import path
+from django.db.models import Case, When, F
 
 def health_view(request):
     return JsonResponse({"status": "ok", "uptime": "healthy"}, status=200)
@@ -44,24 +45,27 @@ FIVE_MINUTES = 60 * 5
 HEIGHT_MINUTES = 60 * 8    
 SHORT_CACHE = 60 * 3      
 
-@method_decorator(cache_page(FIVE_MINUTES), name='dispatch')
 class ProductListView(ListAPIView):
-    """
-    /api/products/list
-    supports ?page, ?page_size, ?search, ?category, plus any ProductFilter fields
-    """
     serializer_class = ProductListSerializer
     pagination_class = StandardPagination
-    filter_backends  = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class  = ProductFilter
-    search_fields    = ['name']
-    ordering_fields = ['price', 'created_at', 'name']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = ProductFilter
+    search_fields = ['name']
+    ordering_fields = ['effective_price', 'created_at', 'name']  # Use effective_price for ordering
+    
     def get_queryset(self):
         return (
             Product.objects
+                .annotate(
+                    effective_price=Case(
+                        When(discount_price__isnull=False, then=F('discount_price')),
+                        default=F('price')
+                    )
+                )
                 .only('id', 'name', 'price', 'discount_price', 'category', 'main_image', 'created_at')
                 .select_related('category')
         )
+
 
 @method_decorator(cache_page(FIVE_MINUTES), name='dispatch')
 class DiscountedProductListView(ListAPIView):
