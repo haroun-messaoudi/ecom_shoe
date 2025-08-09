@@ -40,9 +40,9 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 100
 
 # Cache TTLs
-FIVE_MINUTES = 60 * 5      # 2 hours
-HEIGHT_MINUTES = 60 * 8    # 3 hours
-SHORT_CACHE = 60 * 3         # 3 minutes (for extras)
+FIVE_MINUTES = 60 * 5     
+HEIGHT_MINUTES = 60 * 8    
+SHORT_CACHE = 60 * 3      
 
 @method_decorator(cache_page(FIVE_MINUTES), name='dispatch')
 class ProductListView(ListAPIView):
@@ -54,7 +54,7 @@ class ProductListView(ListAPIView):
     pagination_class = StandardPagination
     filter_backends  = [DjangoFilterBackend, filters.SearchFilter]
     filterset_class  = ProductFilter
-    search_fields    = ['name', 'description']
+    search_fields    = ['name']
 
     def get_queryset(self):
         return (
