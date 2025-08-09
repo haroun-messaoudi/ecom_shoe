@@ -52,7 +52,7 @@ class ProductListView(ListAPIView):
     """
     serializer_class = ProductListSerializer
     pagination_class = StandardPagination
-    filter_backends  = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends  = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class  = ProductFilter
     search_fields    = ['name']
     ordering_fields = ['price', 'created_at', 'name']
