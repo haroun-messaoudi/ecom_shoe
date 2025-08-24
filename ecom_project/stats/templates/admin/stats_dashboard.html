@@ -1,0 +1,1007 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Owner Dashboard{% endblock %}
+
+{% block extrahead %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --danger-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        --dark-gradient: linear-gradient(135deg, #434343 0%, #000000 100%);
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        --hover-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        --border-radius: 15px;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+    
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .dashboard-title {
+        font-size: 3rem;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-subtitle {
+        color: #6c757d;
+        font-size: 1.2rem;
+        font-weight: 400;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: none;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+    
+    .metric-card.success::before { background: var(--success-gradient); }
+    .metric-card.warning::before { background: var(--warning-gradient); }
+    .metric-card.danger::before { background: var(--danger-gradient); }
+    .metric-card.info::before { background: var(--info-gradient); }
+    .metric-card.dark::before { background: var(--dark-gradient); }
+    
+    .metric-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-icon.primary { background: var(--primary-gradient); }
+    .metric-icon.success { background: var(--success-gradient); }
+    .metric-icon.warning { background: var(--warning-gradient); }
+    .metric-icon.danger { background: var(--danger-gradient); }
+    .metric-icon.info { background: var(--info-gradient); }
+    .metric-icon.dark { background: var(--dark-gradient); }
+    
+    .metric-title {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+        word-break: break-all;
+        line-height: 1.1;
+    }
+    
+    .metric-value.large-number {
+        font-size: 1.5rem;
+    }
+    
+    .section-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .section-header {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-content {
+        padding: 2rem;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 2rem;
+    }
+    
+    .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .alert-item {
+        background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+        border: 1px solid #feb2b2;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .alert-item.warning {
+        background: linear-gradient(135deg, #fffaf0 0%, #feebc8 100%);
+        border-color: #f6ad55;
+    }
+    
+    .alert-item.success {
+        background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+        border-color: #68d391;
+    }
+    
+    .modern-table {
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .modern-table thead th {
+        background: var(--primary-gradient);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+        border: none;
+        padding: 1rem;
+    }
+    
+    .modern-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .modern-table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+    }
+    
+    .modern-table tbody td {
+        padding: 1rem;
+        border-color: #e9ecef;
+        vertical-align: middle;
+    }
+    
+    .product-list {
+        display: grid;
+        gap: 1rem;
+    }
+    
+    .product-item {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+    
+    .badge-custom {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+    
+    .insights-grid {
+        display: grid;
+        gap: 1rem;
+    }
+    
+    .insight-item {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-left: 4px solid #2196f3;
+        border-radius: 0 10px 10px 0;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .scrollable-content {
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    
+    .scrollable-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .scrollable-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .scrollable-content::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .scrollable-content::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+        .dashboard-container { padding: 1rem; }
+        .dashboard-title { font-size: 2rem; }
+        .metric-value { font-size: 2rem; }
+        .chart-grid { grid-template-columns: 1fr; }
+        .chart-container { height: 300px; }
+        .section-content { padding: 1rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Store Analytics Dashboard</h1>
+        <p class="dashboard-subtitle">Comprehensive insights and performance metrics</p>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+            <div class="metric-card info">
+                <div class="metric-icon info">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="metric-title">Total Revenue</div>
+                <div class="metric-value">{{ total_revenue|default:0|floatformat:0 }} DA</div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+            <div class="metric-card success">
+                <div class="metric-icon success">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="metric-title">Total Orders</div>
+                <div class="metric-value">{{ orders_count|length }}</div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+            <div class="metric-card warning">
+                <div class="metric-icon warning">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="metric-title">Delivery Fees</div>
+                <div class="metric-value">{{ total_delivery_fees|default:0|floatformat:0 }} DA</div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+            <div class="metric-card danger">
+                <div class="metric-icon danger">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="metric-title">Conversion Rate</div>
+                <div class="metric-value">{{ conversion_overall }}%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Section -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-lightbulb text-warning"></i>
+                Key Insights
+            </h2>
+        </div>
+        <div class="section-content">
+            <div class="insights-grid">
+                <div class="insight-item">
+                    <i class="fas fa-trending-up text-primary"></i>
+                    <span>{{ revenue_trend_insight }}</span>
+                </div>
+                <div class="insight-item">
+                    <i class="fas fa-chart-bar text-success"></i>
+                    <span>{{ orders_trend_insight }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Management -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                        Stock Alerts
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="scrollable-content">
+                    {% for warning in stock_warnings %}
+                    <div class="alert-item">
+                        <i class="fas fa-exclamation-circle text-danger"></i>
+                        {{ warning }}
+                    </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-sync-alt text-warning"></i>
+                        Restock Suggestions
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="scrollable-content">
+                    {% for suggestion in restock_suggestions %}
+                    <div class="alert-item warning">
+                        <i class="fas fa-boxes text-warning"></i>
+                        {{ suggestion }}
+                    </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-fire text-danger"></i>
+                        Fast-selling Low Stock
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="scrollable-content">
+                    {% for fs in fast_selling_low_stock %}
+                    <div class="alert-item success">
+                        <i class="fas fa-bolt text-success"></i>
+                        {{ fs }}
+                    </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-chart-area text-primary"></i>
+                Revenue Analytics
+            </h2>
+        </div>
+        <div class="section-content">
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <canvas id="dailyRevenueChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="weeklyRevenueChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-shopping-bag text-success"></i>
+                Orders Analytics
+            </h2>
+        </div>
+        <div class="section-content">
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <canvas id="dailyOrdersChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="weeklyOrdersChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyOrdersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Tables -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-trophy text-warning"></i>
+                        Top Performing Regions
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="table-responsive">
+                        <table class="table modern-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-map-marker-alt me-2"></i>Wilaya</th>
+                                    <th><i class="fas fa-shopping-cart me-2"></i>Orders</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for w in high_performing_wilayas %}
+                                <tr>
+                                    <td><strong>{{ w.wilaya }}</strong></td>
+                                    <td><span class="badge-custom bg-success">{{ w.total_orders }}</span></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-percentage text-info"></i>
+                        Conversion by Region
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="table-responsive">
+                        <table class="table modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Wilaya</th>
+                                    <th>Accepted</th>
+                                    <th>Total</th>
+                                    <th>Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for w in conversion_per_wilaya %}
+                                <tr>
+                                    <td><strong>{{ w.wilaya }}</strong></td>
+                                    <td>{{ w.accepted_orders }}</td>
+                                    <td>{{ w.total_orders }}</td>
+                                    <td>
+                                        <span class="badge-custom {% if w.conversion >= 70 %}bg-success{% elif w.conversion >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ w.conversion }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Performance -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-star text-warning"></i>
+                        Top Selling Products
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="scrollable-content">
+                        <div class="product-list">
+                        {% for p in top_selling_products %}
+                            <div class="product-item">
+                                <div>
+                                    <strong>{{ p.name }}</strong>
+                                    <small class="text-muted d-block">Units sold</small>
+                                </div>
+                                <span class="badge-custom bg-primary">{{ p.sold }}</span>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-turtle text-secondary"></i>
+                        Slow-moving Products
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="scrollable-content">
+                        <div class="product-list">
+                        {% for p in slow_moving_products %}
+                            <div class="product-item">
+                                <div>
+                                    <strong>{{ p.name }}</strong>
+                                    <small class="text-muted d-block">Units sold</small>
+                                </div>
+                                <span class="badge-custom bg-secondary">{{ p.sold }}</span>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Performance -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-tags text-info"></i>
+                Best Performing Categories
+            </h3>
+        </div>
+        <div class="section-content">
+            <div class="row g-3">
+            {% for c in best_categories %}
+                <div class="col-md-4 col-sm-6">
+                    <div class="product-item">
+                        <div>
+                            <strong>{{ c.name }}</strong>
+                            <small class="text-muted d-block">Total sold</small>
+                        </div>
+                        <span class="badge-custom bg-info">{{ c.total_sold|default:0 }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Best Performers -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-medal text-warning"></i>
+                        Monthly Best Products
+                    </h3>
+                </div>
+                <div class="section-content">
+                    {% for month, product in monthly_best_selling_products.items %}
+                    <div class="product-item mb-2">
+                        <div>
+                            <strong>{{ product.product_name }}</strong>
+                            <small class="text-muted d-block">{{ month|date:"F Y" }}</small>
+                        </div>
+                        <span class="badge-custom bg-warning">{{ product.sold }} sold</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-crown text-warning"></i>
+                        Monthly Best Categories
+                    </h3>
+                </div>
+                <div class="section-content">
+                    {% for month, category in monthly_best_categories.items %}
+                    <div class="product-item mb-2">
+                        <div>
+                            <strong>{{ category.category_name }}</strong>
+                            <small class="text-muted d-block">{{ month|date:"F Y" }}</small>
+                        </div>
+                        <span class="badge-custom bg-warning">{{ category.sold }} sold</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Performance -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-shipping-fast text-primary"></i>
+                Delivery Performance
+            </h3>
+        </div>
+        <div class="section-content">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <div class="metric-icon primary">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="metric-title">Average Delivery Fee</div>
+                        <div class="metric-value">{{ delivery_performance.average_fee|floatformat:0 }} DA</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <div class="metric-icon success">
+                            <i class="fas fa-truck-fast"></i>
+                        </div>
+                        <div class="metric-title">Most Used Delivery Type</div>
+                        <div class="metric-value" style="font-size: 1.8rem;">{{ delivery_performance.top_delivery_type }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ daily_revenue|json_script:"daily-revenue-data" }}
+{{ weekly_revenue|json_script:"weekly-revenue-data" }}
+{{ monthly_revenue|json_script:"monthly-revenue-data" }}
+{{ daily_orders|json_script:"daily-orders-data" }}
+{{ weekly_orders|json_script:"weekly-orders-data" }}
+{{ monthly_orders|json_script:"monthly-orders-data" }}
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<script>
+// Chart.js default configuration
+Chart.defaults.font.family = 'Inter';
+Chart.defaults.color = '#6c757d';
+Chart.defaults.borderColor = '#dee2e6';
+Chart.defaults.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+
+// Safe data extraction from Django
+// Safe data extraction from Django with enhanced debugging
+function getDjangoData(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) {
+        console.warn(`Element with id '${elementId}' not found`);
+        return [];
+    }
+    try {
+        const rawData = element.textContent;
+        console.log(`Raw data from ${elementId}:`, rawData);
+        
+        const data = JSON.parse(rawData);
+        console.log(`Parsed ${elementId}:`, data);
+        
+        // Ensure it's an array
+        const arrayData = Array.isArray(data) ? data : [];
+        console.log(`Final ${elementId} array:`, arrayData);
+        
+        return arrayData;
+    } catch (error) {
+        console.error(`Error parsing data from ${elementId}:`, error);
+        return [];
+    }
+}
+
+// Enhanced chart creation function with better data handling
+function createModernChart(canvasId, data, label, type = 'line') {
+    console.log(`Creating chart: ${canvasId}`, { data, label });
+    
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Canvas element with id '${canvasId}' not found`);
+        return null;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Validate data structure
+    if (!Array.isArray(data) || data.length === 0) {
+        console.warn(`No data for chart: ${canvasId}`);
+        showNoDataMessage(canvas, `No ${label} data available`);
+        return null;
+    }
+    
+    // Extract labels and values from the standardized format
+    const labels = data.map(item => {
+        // Handle different date formats
+        if (item.date) {
+            return formatDate(item.date);
+        }
+        // Fallback to other possible field names
+        return item.day || item.week || item.month || 'N/A';
+    });
+    
+    const values = data.map(item => {
+        return item.value || item.total || item.count || 0;
+    });
+    
+    console.log(`Chart ${canvasId} - Labels:`, labels);
+    console.log(`Chart ${canvasId} - Values:`, values);
+    
+    // Validate processed data
+    if (labels.length === 0 || values.length === 0) {
+        console.warn(`Empty processed data for chart: ${canvasId}`);
+        showNoDataMessage(canvas, `No ${label} data available`);
+        return null;
+    }
+    
+    try {
+        // Create gradient
+        const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientFill.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
+        gradientFill.addColorStop(1, 'rgba(102, 126, 234, 0.05)');
+        
+        const chart = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: values,
+                    backgroundColor: gradientFill,
+                    borderColor: '#667eea',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#667eea',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                let value = context.parsed.y;
+                                if (isNaN(value)) value = 0;
+                                
+                                if (label && (label.toLowerCase().includes('revenue') || 
+                                            label.toLowerCase().includes('fee'))) {
+                                    return `${label}: ${value.toLocaleString()} DA`;
+                                }
+                                return `${label}: ${value.toLocaleString()}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#6c757d',
+                            font: { size: 12 },
+                            maxRotation: 45
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: {
+                            color: '#6c757d',
+                            font: { size: 12 },
+                            callback: function(value) {
+                                if (isNaN(value)) return '0';
+                                
+                                if (label && (label.toLowerCase().includes('revenue') || 
+                                            label.toLowerCase().includes('fee'))) {
+                                    return value.toLocaleString() + ' DA';
+                                }
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+        
+        console.log(`Chart ${canvasId} created successfully`);
+        return chart;
+        
+    } catch (error) {
+        console.error(`Error creating chart ${canvasId}:`, error);
+        showNoDataMessage(canvas, 'Error loading chart');
+        return null;
+    }
+}
+
+// Enhanced date formatting
+function formatDate(dateString, format = 'auto') {
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        
+        if (format === 'auto') {
+            // Auto-detect format based on date string or use default
+            if (dateString.includes('week')) {
+                return 'Week of ' + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            } else if (dateString.length <= 7) { // YYYY-MM format
+                return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            } else {
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+        }
+        
+        switch (format) {
+            case 'short':
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            case 'week':
+                return 'Week of ' + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            case 'month':
+                return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            default:
+                return dateString;
+        }
+    } catch (error) {
+        console.warn('Date formatting error:', error);
+        return dateString;
+    }
+}
+
+// Initialize all charts with the new data structure
+function initializeCharts() {
+    console.log('Starting chart initialization...');
+    
+    // Load data from Django JSON scripts
+    const dailyRevenueData = getDjangoData('daily-revenue-data');
+    const weeklyRevenueData = getDjangoData('weekly-revenue-data');
+    const monthlyRevenueData = getDjangoData('monthly-revenue-data');
+    const dailyOrdersData = getDjangoData('daily-orders-data');
+    const weeklyOrdersData = getDjangoData('weekly-orders-data');
+    const monthlyOrdersData = getDjangoData('monthly-orders-data');
+    
+    // Create all charts
+    createModernChart('dailyRevenueChart', dailyRevenueData, 'Daily Revenue');
+    createModernChart('weeklyRevenueChart', weeklyRevenueData, 'Weekly Revenue');
+    createModernChart('monthlyRevenueChart', monthlyRevenueData, 'Monthly Revenue');
+    createModernChart('dailyOrdersChart', dailyOrdersData, 'Daily Orders');
+    createModernChart('weeklyOrdersChart', weeklyOrdersData, 'Weekly Orders');
+    createModernChart('monthlyOrdersChart', monthlyOrdersData, 'Monthly Orders');
+    
+    console.log('Chart initialization completed');
+}
+
+// Helper function to show "No Data" message (keep the same)
+function showNoDataMessage(canvas, message) {
+    const ctx = canvas.getContext('2d');
+    
+    if (!canvas.width || !canvas.height) {
+        canvas.width = canvas.offsetWidth || 500;
+        canvas.height = canvas.offsetHeight || 300;
+    }
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // Background
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Border
+    ctx.strokeStyle = '#dee2e6';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+    
+    // Message
+    ctx.fillStyle = '#6c757d';
+    ctx.font = 'bold 16px Inter, Arial, sans-serif';
+    ctx.fillText(message || 'No data available', centerX, centerY);
+    
+    ctx.font = '14px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#adb5bd';
+    ctx.fillText('Check console for details', centerX, centerY + 25);
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, starting chart initialization...');
+    setTimeout(initializeCharts, 500); // Increased delay to ensure data is loaded
+});
+
+// Backup initialization
+window.addEventListener('load', function() {
+    if (!window.chartsInitialized) {
+        window.chartsInitialized = true;
+        console.log('Window loaded, initializing charts as backup...');
+        setTimeout(initializeCharts, 500);
+    }
+});
+</script>
+
+{% endblock %}

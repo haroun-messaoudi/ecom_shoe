@@ -30,7 +30,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["ecom-1qve.onrender.com", "localhost","ecom-shoe-b2nx.onrender.com", "127.0.0.1","ecom-shoe-no8p.onrender.com","ecom-2-backend.onrender.com"]
 CORS_ALLOWED_ORIGINS = [
@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "cloudinary_storage",
     'products',
     'orders',  # Your products app
+    'stats',
     'corsheaders',  # If you are using CORS
     'django_filters',  # If you are using Django filters    
 ]
@@ -229,27 +230,28 @@ JAZZMIN_SETTINGS = {
     "site_header": "🛒 Store Admin",
     "site_logo": "images/logo.svg",
     "site_brand": "My Shop",
-    "custom_css": "css/jazzmin_overrides.css",  
-    "site_title": " ",   
+    "custom_css": "css/jazzmin_overrides.css",
+    
+    "site_title": " ",
     "site_header": "E-commerce Admin",
     "welcome_sign": "Welcome, Store Owner!",
-
+    
     # Navbar (top)
     "show_navbar": True,
     "user_display": True,
-
+    
     # Sidebar (left)
     "show_sidebar": True,
     "sidebar_nav_collapsed": False,
-
+    
     # Color/theme
     "topnavbar_dark": False,
     "dark_mode_theme": "black",
     "theme": "flatly",
-
+    
     # Custom order of apps/models
     "ordering": ["orders", "products", "auth"],
-
+    
     # Model icons
     "icons": {
         "orders.Order": "fas fa-receipt",
@@ -257,40 +259,57 @@ JAZZMIN_SETTINGS = {
         "products.Product": "fas fa-tag",
         "products.ProductVariant": "fas fa-barcode",
     },
-
-    # Custom menu links under the “orders” app
-    # "custom_links": {
-    #     "orders": [
-    #         {
-    #             "name": "Pending Orders",
-    #             # reverse("admin:orders_order_changelist")
-    #             "url_name": "admin:orders_order_changelist",
-    #             "icon": "fas fa-hourglass-half",
-    #             "permissions": ["orders.view_order"],
-    #             "params": {"order_status__exact": "Pending"},
-    #         },
-    #         {
-    #             "name": "Accepted Orders",
-    #             "url_name": "admin:orders_order_changelist",
-    #             "icon": "fas fa-check-circle",
-    #             "permissions": ["orders.view_order"],
-    #             "params": {"order_status__exact": "Accepted"},
-    #         },
-    #         {
-    #             "name": "Rejected Orders",
-    #             "url_name": "admin:orders_order_changelist",
-    #             "icon": "fas fa-times-circle",
-    #             "permissions": ["orders.view_order"],
-    #             "params": {"order_status__exact": "Rejected"},
-    #         },
-    #     ],
-    # },
-
+    
+    # Top menu links - these appear in the navbar
+    "topmenu_links": [
+        {
+            "name": "📊 Dashboard",  # Shorter name for mobile
+            "url": "/admin/stats/dashboard/",
+            "icon": "fas fa-chart-line",
+            "permissions": ["is_staff"],
+            "class": "btn btn-primary btn-sm dashboard-btn",  # Bootstrap responsive button classes
+        }
+    ],
+    
+    # Custom menu links under the "orders" app
+    "custom_links": {
+        "orders": [
+            {
+                "name": "Pending Orders",
+                "url_name": "admin:orders_order_changelist",
+                "icon": "fas fa-hourglass-half",
+                "permissions": ["orders.view_order"],
+                "params": {"order_status__exact": "Pending"},
+            },
+            {
+                "name": "Accepted Orders", 
+                "url_name": "admin:orders_order_changelist",
+                "icon": "fas fa-check-circle",
+                "permissions": ["orders.view_order"],
+                "params": {"order_status__exact": "Accepted"},
+            },
+            {
+                "name": "Rejected Orders",
+                "url_name": "admin:orders_order_changelist", 
+                "icon": "fas fa-times-circle",
+                "permissions": ["orders.view_order"],
+                "params": {"order_status__exact": "Rejected"},
+            },
+            # Add dashboard link here too for mobile sidebar access
+            {
+                "name": "📊 Owner Dashboard",
+                "url": "/admin/stats/dashboard/",
+                "icon": "fas fa-chart-line",
+                "permissions": ["is_staff"],
+            },
+        ],
+    },
+    
     # Dashboard Cards
     "welcome_cards": [
         {
             "name": "Total Orders",
-            "type": "html",
+            "type": "html", 
             "content": """
                 <div class="card text-center">
                     <div class="card-body">
@@ -301,7 +320,7 @@ JAZZMIN_SETTINGS = {
             """,
         },
     ],
-
+    
     # Hide or show apps/models
     "hide_models": [
         "auth.Group",
