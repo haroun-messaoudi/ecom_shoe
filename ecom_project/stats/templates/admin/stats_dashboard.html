@@ -153,12 +153,14 @@
     
     .section-content {
         padding: 2rem;
+        position: relative;
     }
     
     .chart-container {
         position: relative;
         height: 400px;
         margin-bottom: 2rem;
+        transition: all 0.3s ease;
     }
     
     .chart-grid {
@@ -241,6 +243,11 @@
         border-radius: 20px;
         font-weight: 500;
         font-size: 0.85rem;
+        max-width:80px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .insights-grid {
@@ -262,6 +269,8 @@
         max-height: 300px;
         overflow-y: auto;
         padding-right: 10px;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
     }
     
     .scrollable-content::-webkit-scrollbar {
@@ -281,12 +290,203 @@
     .scrollable-content::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
     }
-        .dashboard-container { padding: 1rem; }
-        .dashboard-title { font-size: 2rem; }
-        .metric-value { font-size: 2rem; }
-        .chart-grid { grid-template-columns: 1fr; }
-        .chart-container { height: 300px; }
-        .section-content { padding: 1rem; }
+
+    /* Enhanced mobile responsiveness with scrollable charts */
+    @media (max-width: 768px) {
+        .dashboard-container { 
+            padding: 1rem; 
+        }
+        
+        .dashboard-title { 
+            font-size: 2rem; 
+        }
+        
+        .metric-value { 
+            font-size: 2rem; 
+        }
+        
+        /* Make chart grid scrollable on mobile */
+        .chart-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            overflow-x: auto;
+            overflow-y: visible;
+            padding-bottom: 1rem;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Individual chart containers in mobile scroll */
+        .chart-grid .chart-container {
+            min-width: 300px;
+            width: 300px;
+            flex-shrink: 0;
+            height: 250px;
+            scroll-snap-align: start;
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        /* Custom scrollbar for chart grid */
+        .chart-grid::-webkit-scrollbar {
+            height: 8px;
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .chart-grid::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+        
+        .chart-grid::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
+        }
+        
+        /* Scroll indicators */
+        .chart-grid::before {
+            content: '← Swipe to see more charts';
+            position: absolute;
+            top: -25px;
+            right: 0;
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .section-content { 
+            padding: 1rem; 
+            position: relative;
+        }
+        
+        /* Mobile table responsiveness */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .modern-table {
+            min-width: 300px;
+        }
+        
+        /* Mobile product lists */
+        .product-list {
+            max-height: 300px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Mobile metric cards - make them full width */
+        .row.g-4.mb-5 .col-xl-6,
+        .row.g-4.mb-5 .col-lg-6,
+        .row.g-4.mb-5 .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        /* Better touch targets for mobile */
+        .badge-custom,
+        .btn {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    /* Extra small screens */
+    @media (max-width: 576px) {
+        .dashboard-title { 
+            font-size: 1.5rem; 
+        }
+        
+        .dashboard-subtitle {
+            font-size: 1rem;
+        }
+        
+        /* Even smaller chart containers for very small screens */
+        .chart-grid .chart-container {
+            min-width: 280px;
+            width: 280px;
+            height: 220px;
+            padding: 0.75rem;
+        }
+        
+        /* Adjust metric cards for very small screens */
+        .metric-card {
+            padding: 1.5rem;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+        }
+        
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+        
+        /* Compact section headers */
+        .section-header {
+            padding: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+        }
+        
+        /* Smaller tables on mobile */
+        .modern-table thead th,
+        .modern-table tbody td {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    /* Tablet adjustments */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .chart-grid .chart-container {
+            height: 350px;
+        }
+        
+        /* Two charts per row on tablets */
+        .chart-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Additional utility classes for forcing horizontal scroll */
+    .horizontal-scroll {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    /* Chart loading states */
+    .chart-container.loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+    }
+
+    .chart-container.loading::before {
+        content: 'Loading chart...';
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* Smooth transitions for responsive changes */
+    .chart-container,
+    .metric-card,
+    .section-card {
+        transition: all 0.3s ease;
     }
 </style>
 {% endblock %}
@@ -723,7 +923,6 @@ Chart.defaults.color = '#6c757d';
 Chart.defaults.borderColor = '#dee2e6';
 Chart.defaults.backgroundColor = 'rgba(102, 126, 234, 0.1)';
 
-// Safe data extraction from Django
 // Safe data extraction from Django with enhanced debugging
 function getDjangoData(elementId) {
     const element = document.getElementById(elementId);
@@ -749,9 +948,9 @@ function getDjangoData(elementId) {
     }
 }
 
-// Enhanced chart creation function with better data handling
-function createModernChart(canvasId, data, label, type = 'line') {
-    console.log(`Creating chart: ${canvasId}`, { data, label });
+// Mobile-optimized chart creation function
+function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
+    console.log(`Creating mobile-optimized chart: ${canvasId}`, { data, label });
     
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -761,6 +960,9 @@ function createModernChart(canvasId, data, label, type = 'line') {
     
     const ctx = canvas.getContext('2d');
     
+    // Check if we're on mobile
+    const isMobile = window.innerWidth <= 768;
+    
     // Validate data structure
     if (!Array.isArray(data) || data.length === 0) {
         console.warn(`No data for chart: ${canvasId}`);
@@ -768,17 +970,22 @@ function createModernChart(canvasId, data, label, type = 'line') {
         return null;
     }
     
-    // Extract labels and values from the standardized format
-    const labels = data.map(item => {
-        // Handle different date formats
+    // Process data for mobile (limit points if too many)
+    let processedData = data;
+    if (isMobile && data.length > 15) {
+        // On mobile, show only the most recent 15 data points
+        processedData = data.slice(-15);
+    }
+    
+    // Extract labels and values
+    const labels = processedData.map(item => {
         if (item.date) {
-            return formatDate(item.date);
+            return isMobile ? formatDateMobile(item.date) : formatDate(item.date);
         }
-        // Fallback to other possible field names
         return item.day || item.week || item.month || 'N/A';
     });
     
-    const values = data.map(item => {
+    const values = processedData.map(item => {
         return item.value || item.total || item.count || 0;
     });
     
@@ -807,14 +1014,14 @@ function createModernChart(canvasId, data, label, type = 'line') {
                     data: values,
                     backgroundColor: gradientFill,
                     borderColor: '#667eea',
-                    borderWidth: 3,
+                    borderWidth: isMobile ? 2 : 3,
                     fill: true,
                     tension: 0.4,
                     pointBackgroundColor: '#667eea',
                     pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
+                    pointBorderWidth: isMobile ? 1 : 2,
+                    pointRadius: isMobile ? 4 : 6,
+                    pointHoverRadius: isMobile ? 6 : 8,
                 }]
             },
             options: {
@@ -826,7 +1033,7 @@ function createModernChart(canvasId, data, label, type = 'line') {
                 },
                 plugins: {
                     legend: {
-                        display: true,
+                        display: !isMobile, // Hide legend on mobile to save space
                         position: 'top',
                     },
                     tooltip: {
@@ -837,6 +1044,8 @@ function createModernChart(canvasId, data, label, type = 'line') {
                         borderWidth: 1,
                         cornerRadius: 8,
                         displayColors: false,
+                        titleFont: { size: isMobile ? 12 : 14 },
+                        bodyFont: { size: isMobile ? 11 : 13 },
                         callbacks: {
                             label: function(context) {
                                 let value = context.parsed.y;
@@ -856,8 +1065,9 @@ function createModernChart(canvasId, data, label, type = 'line') {
                         grid: { display: false },
                         ticks: {
                             color: '#6c757d',
-                            font: { size: 12 },
-                            maxRotation: 45
+                            font: { size: isMobile ? 10 : 12 },
+                            maxRotation: isMobile ? 45 : 45,
+                            maxTicksLimit: isMobile ? 6 : 10 // Fewer ticks on mobile
                         }
                     },
                     y: {
@@ -865,13 +1075,23 @@ function createModernChart(canvasId, data, label, type = 'line') {
                         grid: { color: 'rgba(0, 0, 0, 0.05)' },
                         ticks: {
                             color: '#6c757d',
-                            font: { size: 12 },
+                            font: { size: isMobile ? 10 : 12 },
+                            maxTicksLimit: isMobile ? 5 : 8, // Fewer ticks on mobile
                             callback: function(value) {
                                 if (isNaN(value)) return '0';
                                 
+                                // Format large numbers for mobile
+                                if (isMobile && value >= 1000) {
+                                    if (value >= 1000000) {
+                                        return (value / 1000000).toFixed(1) + 'M';
+                                    } else if (value >= 1000) {
+                                        return (value / 1000).toFixed(1) + 'K';
+                                    }
+                                }
+                                
                                 if (label && (label.toLowerCase().includes('revenue') || 
                                             label.toLowerCase().includes('fee'))) {
-                                    return value.toLocaleString() + ' DA';
+                                    return isMobile ? value.toLocaleString() : value.toLocaleString() + ' DA';
                                 }
                                 return value.toLocaleString();
                             }
@@ -879,23 +1099,23 @@ function createModernChart(canvasId, data, label, type = 'line') {
                     }
                 },
                 animation: {
-                    duration: 2000,
+                    duration: isMobile ? 1000 : 2000, // Faster animation on mobile
                     easing: 'easeInOutQuart'
                 }
             }
         });
         
-        console.log(`Chart ${canvasId} created successfully`);
+        console.log(`Mobile-optimized chart ${canvasId} created successfully`);
         return chart;
         
     } catch (error) {
-        console.error(`Error creating chart ${canvasId}:`, error);
+        console.error(`Error creating mobile chart ${canvasId}:`, error);
         showNoDataMessage(canvas, 'Error loading chart');
         return null;
     }
 }
 
-// Enhanced date formatting
+// Enhanced date formatting (keep existing function)
 function formatDate(dateString, format = 'auto') {
     if (!dateString) return 'N/A';
     
@@ -930,9 +1150,80 @@ function formatDate(dateString, format = 'auto') {
     }
 }
 
-// Initialize all charts with the new data structure
-function initializeCharts() {
-    console.log('Starting chart initialization...');
+// Mobile-specific date formatting
+function formatDateMobile(dateString) {
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        
+        // Very short format for mobile
+        return date.toLocaleDateString('en-US', { 
+            month: 'numeric', 
+            day: 'numeric' 
+        });
+    } catch (error) {
+        console.warn('Mobile date formatting error:', error);
+        return dateString;
+    }
+}
+
+// Add scroll indicators for charts
+function addScrollIndicators() {
+    const chartGrids = document.querySelectorAll('.chart-grid');
+    
+    chartGrids.forEach(grid => {
+        if (window.innerWidth <= 768) {
+            // Add scroll indicator
+            if (!grid.querySelector('.scroll-indicator')) {
+                const indicator = document.createElement('div');
+                indicator.className = 'scroll-indicator';
+                indicator.innerHTML = '← Swipe to see more charts →';
+                indicator.style.cssText = `
+                    position: absolute;
+                    top: -30px;
+                    right: 0;
+                    font-size: 0.8rem;
+                    color: #6c757d;
+                    font-style: italic;
+                    z-index: 10;
+                `;
+                grid.parentElement.style.position = 'relative';
+                grid.parentElement.appendChild(indicator);
+            }
+        }
+    });
+}
+
+// Handle window resize to re-optimize charts
+function handleResize() {
+    clearTimeout(window.resizeTimeout);
+    window.resizeTimeout = setTimeout(() => {
+        const isMobile = window.innerWidth <= 768;
+        console.log('Window resized, mobile mode:', isMobile);
+        
+        // Re-initialize charts with mobile optimization
+        if (window.dashboardCharts) {
+            Object.values(window.dashboardCharts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+        }
+        
+        // Re-initialize
+        initializeMobileCharts();
+        addScrollIndicators();
+    }, 300);
+}
+
+// Mobile-optimized chart initialization
+function initializeMobileCharts() {
+    console.log('Starting mobile-optimized chart initialization...');
+    
+    // Store chart instances globally for cleanup
+    window.dashboardCharts = {};
     
     // Load data from Django JSON scripts
     const dailyRevenueData = getDjangoData('daily-revenue-data');
@@ -942,18 +1233,21 @@ function initializeCharts() {
     const weeklyOrdersData = getDjangoData('weekly-orders-data');
     const monthlyOrdersData = getDjangoData('monthly-orders-data');
     
-    // Create all charts
-    createModernChart('dailyRevenueChart', dailyRevenueData, 'Daily Revenue');
-    createModernChart('weeklyRevenueChart', weeklyRevenueData, 'Weekly Revenue');
-    createModernChart('monthlyRevenueChart', monthlyRevenueData, 'Monthly Revenue');
-    createModernChart('dailyOrdersChart', dailyOrdersData, 'Daily Orders');
-    createModernChart('weeklyOrdersChart', weeklyOrdersData, 'Weekly Orders');
-    createModernChart('monthlyOrdersChart', monthlyOrdersData, 'Monthly Orders');
+    // Create all charts with mobile optimization
+    window.dashboardCharts.dailyRevenue = createMobileOptimizedChart('dailyRevenueChart', dailyRevenueData, 'Daily Revenue');
+    window.dashboardCharts.weeklyRevenue = createMobileOptimizedChart('weeklyRevenueChart', weeklyRevenueData, 'Weekly Revenue');
+    window.dashboardCharts.monthlyRevenue = createMobileOptimizedChart('monthlyRevenueChart', monthlyRevenueData, 'Monthly Revenue');
+    window.dashboardCharts.dailyOrders = createMobileOptimizedChart('dailyOrdersChart', dailyOrdersData, 'Daily Orders');
+    window.dashboardCharts.weeklyOrders = createMobileOptimizedChart('weeklyOrdersChart', weeklyOrdersData, 'Weekly Orders');
+    window.dashboardCharts.monthlyOrders = createMobileOptimizedChart('monthlyOrdersChart', monthlyOrdersData, 'Monthly Orders');
     
-    console.log('Chart initialization completed');
+    // Add scroll indicators
+    setTimeout(addScrollIndicators, 100);
+    
+    console.log('Mobile-optimized chart initialization completed');
 }
 
-// Helper function to show "No Data" message (keep the same)
+// Helper function to show "No Data" message
 function showNoDataMessage(canvas, message) {
     const ctx = canvas.getContext('2d');
     
@@ -990,17 +1284,53 @@ function showNoDataMessage(canvas, message) {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, starting chart initialization...');
-    setTimeout(initializeCharts, 500); // Increased delay to ensure data is loaded
+    console.log('DOM loaded, starting mobile-optimized chart initialization...');
+    setTimeout(initializeMobileCharts, 500);
+    
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
 });
 
-// Backup initialization
+// Enhanced backup initialization
 window.addEventListener('load', function() {
     if (!window.chartsInitialized) {
         window.chartsInitialized = true;
-        console.log('Window loaded, initializing charts as backup...');
-        setTimeout(initializeCharts, 500);
+        console.log('Window loaded, initializing mobile-optimized charts as backup...');
+        setTimeout(initializeMobileCharts, 500);
     }
+});
+
+// Touch event handling for better mobile experience
+document.addEventListener('DOMContentLoaded', function() {
+    const chartGrids = document.querySelectorAll('.chart-grid');
+    
+    chartGrids.forEach(grid => {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        
+        grid.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - grid.offsetLeft;
+            scrollLeft = grid.scrollLeft;
+        });
+        
+        grid.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+        
+        grid.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+        
+        grid.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - grid.offsetLeft;
+            const walk = (x - startX) * 2;
+            grid.scrollLeft = scrollLeft - walk;
+        });
+    });
 });
 </script>
 
