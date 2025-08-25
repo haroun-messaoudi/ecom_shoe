@@ -84,7 +84,12 @@ class Product(models.Model):
             if pid in product_map:
                 product_map[pid].stock = max(product_map[pid].stock - qty, 0)
         cls.objects.bulk_update(products, ['stock'])
-
+    class Meta:
+        indexes = [
+            models.Index(fields=['sold']),
+            models.Index(fields=['price']),
+        ]
+        
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to=upload_to)
@@ -109,6 +114,10 @@ class ProductVariant(models.Model):
 
     class Meta:
         unique_together = ('product', 'size')
+        indexes = [
+            models.Index(fields=['stock']),
+            models.Index(fields=['product', 'stock']),  # Composite index
+        ]
 
     def __str__(self):
         return f"{self.product.name} - Size {self.size}"

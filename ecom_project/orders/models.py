@@ -136,7 +136,13 @@ class Order(models.Model):
         OrderItem.objects.bulk_create(order_items)
         # Optionally update total after bulk create
         self.update_total()
-
+    class Meta:
+        indexes = [
+            models.Index(fields=['order_status']),
+            models.Index(fields=['order_date']),
+            models.Index(fields=['wilaya']),
+            models.Index(fields=['order_status', 'order_date']),  # Composite index
+        ]
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE, db_index=True)
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.PROTECT, blank=True, null=True, db_index=True)
