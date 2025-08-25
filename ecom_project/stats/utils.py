@@ -13,7 +13,21 @@ def total_revenue():
     )['total'] or 0
 
 def orders_count():
+    return Order.objects.all().count()  # Returns only accepted orders
+
+def orders_by_status():
     return Order.objects.values('order_status').annotate(count=Count('id'))
+
+# Alternative: If you want both accepted and total counts
+def orders_summary():
+    total = Order.objects.count()
+    accepted = Order.objects.filter(order_status='Accepted').count()
+    by_status = Order.objects.values('order_status').annotate(count=Count('id'))
+    return {
+        'total': total,
+        'accepted': accepted,
+        'by_status': by_status
+    }
 
 def revenue_by_category():
     return Category.objects.annotate(

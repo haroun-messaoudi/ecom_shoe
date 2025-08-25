@@ -3,6 +3,7 @@ from django.urls import path
 from django.shortcuts import render
 from django.db.models import Sum, Count, F
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
 import json
 from stats.utils import (
     total_revenue, orders_count, daily_revenue, weekly_revenue, monthly_revenue,
@@ -11,7 +12,8 @@ from stats.utils import (
     best_categories, top_selling_products, low_stock_products,
     total_delivery_fees, revenue_trend_insight, orders_trend_insight,
     stock_warnings, restock_suggestions,
-    monthly_best_selling_products, monthly_best_categories
+    monthly_best_selling_products, monthly_best_categories, average_order_value,
+    fast_selling_low_stock, orders_by_status
 )
 from orders.models import Order
 from products.models import Product
@@ -78,49 +80,53 @@ def stats_dashboard(request):
 
     # Serialize chart data properly
     context = {
-        # Basic stats
-        'total_revenue': total_revenue(),
-        'orders_count': list(orders_count()),
-        'total_delivery_fees': total_delivery_fees(),
-        'top_selling_products': list(top_selling_products()),
-        'low_stock_products': list(low_stock_products()),
-        
-        # Chart data - serialized properly
-        'daily_revenue': serialize_chart_data(daily_rev),
-        'weekly_revenue': serialize_chart_data(weekly_rev),
-        'monthly_revenue': serialize_chart_data(monthly_rev),
-        'daily_orders': serialize_chart_data(daily_ord),
-        'weekly_orders': serialize_chart_data(weekly_ord),
-        'monthly_orders': serialize_chart_data(monthly_ord),
-        
-        # Other stats
-        'conversion_overall': conversion_overall(),
-        'conversion_per_wilaya': list(conversion_per_wilaya()),
-        'best_categories': list(best_categories()),
-        'revenue_trend_insight': revenue_trend_insight(),
-        'orders_trend_insight': orders_trend_insight(),
-        'stock_warnings': list(stock_warnings()),
-        'restock_suggestions': list(restock_suggestions()),
-        'orders_today_count': orders_count().filter(order_status='Accepted').aggregate(
-            total=Sum('count')
-        )['total'] or 0,
-
-        # Enhanced stats
-        'high_performing_wilayas': sorted(
-            list(conversion_per_wilaya()), 
-            key=lambda x: x['total_orders'], 
-            reverse=True
-        )[:10],
-        'slow_moving_products': list(Product.objects.order_by('sold')[:10]),
-        'delivery_performance': delivery_perf,
-        'monthly_best_selling_products': monthly_best_selling_products(),
-        'monthly_best_categories': monthly_best_categories(),
-        'average_order_value': total_revenue() / total_orders_count if total_orders_count else 0,
-        
-        # Enhanced charts data for debugging
-        'fast_selling_low_stock': [],  # Add this if you have the function
-    }
+    # Basic stats
+    'total_revenue': total_revenue(),
+    'orders_count': orders_count(),  # Remove list() - this is now an integer
+    'orders_by_status': list(orders_by_status()),  # Add this for status breakdown if needed
+    'total_delivery_fees': total_delivery_fees(),
+    'top_selling_products': list(top_selling_products()),
+    'low_stock_products': list(low_stock_products()),
     
+    # Chart data - serialized properly
+    'daily_revenue': serialize_chart_data(daily_rev),
+    'weekly_revenue': serialize_chart_data(weekly_rev),
+    'monthly_revenue': serialize_chart_data(monthly_rev),
+    'daily_orders': serialize_chart_data(daily_ord),
+    'weekly_orders': serialize_chart_data(weekly_ord),
+    'monthly_orders': serialize_chart_data(monthly_ord),
+    
+    # Other stats
+    'conversion_overall': conversion_overall(),
+    'conversion_per_wilaya': list(conversion_per_wilaya()),
+    'best_categories': list(best_categories()),
+    'revenue_trend_insight': revenue_trend_insight(),
+    'orders_trend_insight': orders_trend_insight(),
+    'stock_warnings': list(stock_warnings()),
+    'restock_suggestions': list(restock_suggestions()),
+    
+    # Fix this line - get today's accepted orders count properly
+    'orders_today_count': Order.objects.filter(
+        order_status='Accepted',
+        order_date__date=timezone.now().date()
+    ).count(),
+
+    # Enhanced stats
+    'high_performing_wilayas': sorted(
+        list(conversion_per_wilaya()), 
+        key=lambda x: x['total_orders'], 
+        reverse=True
+    )[:10],
+    'slow_moving_products': list(Product.objects.order_by('sold')[:10]),
+    'delivery_performance': delivery_perf,
+    'monthly_best_selling_products': monthly_best_selling_products(),
+    'monthly_best_categories': monthly_best_categories(),
+    # Fix average order value calculation
+    'average_order_value': average_order_value(),  # Use the function from utils instead
+    
+    # Add missing functions
+    'fast_selling_low_stock': list(fast_selling_low_stock()),  # This function exists in your utils
+    }
     # Debug: Print context keys
     print("Context keys:", list(context.keys()))
     print("Daily revenue count:", len(context['daily_revenue']))
