@@ -324,5 +324,6 @@ JAZZMIN_SETTINGS = {
     # Hide or show apps/models
     "hide_models": [
         "auth.Group",
+        "products.ProductVariant"
     ],
 }

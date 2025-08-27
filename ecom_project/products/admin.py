@@ -137,3 +137,9 @@ class CategoryAdmin(admin.ModelAdmin):
             )
         return "(no image)"
     category_image_preview.short_description = "Image"
+
+
+@admin.register(ProductVariant)
+class ProductVariantAdmin(admin.ModelAdmin):
+    search_fields = ["product__name", "size"]  # what you want searchable
+    list_display = ["id", "product", "size"]
