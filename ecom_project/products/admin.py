@@ -66,12 +66,13 @@ class ProductVariantInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    # ⚠️ Removed image from list to boost performance
     list_display = (
         "id", "name", "price", "discount_price", "sold"
     )
     list_display_links = ("id", "name")
     list_filter = ("category", DiscountedListFilter)
+    list_per_page = 25
+    list_max_show_all = 200
     search_fields = ("name",)
     ordering = ("-id",)
 

@@ -291,7 +291,14 @@
         background: #a8a8a8;
     }
 
-    /* Enhanced mobile responsiveness with scrollable charts */
+    /* Top performing regions limit */
+    .limited-regions {
+        max-height: 320px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Enhanced mobile responsiveness */
     @media (max-width: 768px) {
         .dashboard-container { 
             padding: 1rem; 
@@ -305,7 +312,7 @@
             font-size: 2rem; 
         }
         
-        /* Make chart grid scrollable on mobile */
+        /* Bigger chart containers for mobile */
         .chart-grid {
             display: flex;
             flex-direction: row;
@@ -315,14 +322,15 @@
             padding-bottom: 1rem;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
+            margin-bottom: 2rem;
         }
         
-        /* Individual chart containers in mobile scroll */
+        /* Bigger chart containers on mobile */
         .chart-grid .chart-container {
-            min-width: 300px;
-            width: 300px;
+            min-width: 350px;
+            width: 350px;
             flex-shrink: 0;
-            height: 250px;
+            height: 300px;
             scroll-snap-align: start;
             background: white;
             border-radius: 10px;
@@ -345,27 +353,27 @@
         .chart-grid::-webkit-scrollbar-thumb:hover {
             background: #5a67d8;
         }
-        
-        /* Scroll indicators */
-        .chart-grid::before {
-            content: '← Swipe to see more charts';
-            position: absolute;
-            top: -25px;
-            right: 0;
-            font-size: 0.8rem;
-            color: #6c757d;
-            font-style: italic;
-        }
-        
+
         .section-content { 
             padding: 1rem; 
             position: relative;
         }
-        
-        /* Mobile table responsiveness */
+        .limited-regions {
+            max-height: 300px;   /* set a consistent height */
+            overflow-y: auto;    /* vertical scroll */
+        }
+        /* Mobile table responsiveness - make conversion table scrollable */
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .table-responsive.mobile-vertical-scroll {
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: visible;
         }
         
         .modern-table {
@@ -395,6 +403,11 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Mobile-specific table styling */
+        .limited-regions {
+            max-height: 280px;
+        }
     }
 
     /* Extra small screens */
@@ -407,11 +420,11 @@
             font-size: 1rem;
         }
         
-        /* Even smaller chart containers for very small screens */
+        /* Even bigger chart containers for very small screens */
         .chart-grid .chart-container {
-            min-width: 280px;
-            width: 280px;
-            height: 220px;
+            min-width: 320px;
+            width: 320px;
+            height: 280px;
             padding: 0.75rem;
         }
         
@@ -457,14 +470,6 @@
         .chart-grid {
             grid-template-columns: repeat(2, 1fr);
         }
-    }
-
-    /* Additional utility classes for forcing horizontal scroll */
-    .horizontal-scroll {
-        overflow-x: auto !important;
-        overflow-y: visible !important;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
     }
 
     /* Chart loading states */
@@ -683,7 +688,7 @@
                     </h3>
                 </div>
                 <div class="section-content">
-                    <div class="table-responsive">
+                    <div class="table-responsive limited-regions">
                         <table class="table modern-table">
                             <thead>
                                 <tr>
@@ -692,7 +697,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            {% for w in high_performing_wilayas %}
+                            {% for w in high_performing_wilayas|slice:":7" %}
                                 <tr>
                                     <td><strong>{{ w.wilaya }}</strong></td>
                                     <td><span class="badge-custom bg-success">{{ w.total_orders }}</span></td>
@@ -714,7 +719,7 @@
                     </h3>
                 </div>
                 <div class="section-content">
-                    <div class="table-responsive">
+                    <div class="table-responsive mobile-vertical-scroll limited-regions">
                         <table class="table modern-table">
                             <thead>
                                 <tr>
@@ -932,15 +937,10 @@ function getDjangoData(elementId) {
     }
     try {
         const rawData = element.textContent;
-        console.log(`Raw data from ${elementId}:`, rawData);
         
         const data = JSON.parse(rawData);
-        console.log(`Parsed ${elementId}:`, data);
-        
         // Ensure it's an array
         const arrayData = Array.isArray(data) ? data : [];
-        console.log(`Final ${elementId} array:`, arrayData);
-        
         return arrayData;
     } catch (error) {
         console.error(`Error parsing data from ${elementId}:`, error);
@@ -948,10 +948,8 @@ function getDjangoData(elementId) {
     }
 }
 
-// Mobile-optimized chart creation function
+// Enhanced mobile-optimized chart creation function
 function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
-    console.log(`Creating mobile-optimized chart: ${canvasId}`, { data, label });
-    
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
         console.error(`Canvas element with id '${canvasId}' not found`);
@@ -959,7 +957,10 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
     }
     
     const ctx = canvas.getContext('2d');
-    
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) {
+        existingChart.destroy();
+    }
     // Check if we're on mobile
     const isMobile = window.innerWidth <= 768;
     
@@ -972,9 +973,9 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
     
     // Process data for mobile (limit points if too many)
     let processedData = data;
-    if (isMobile && data.length > 15) {
-        // On mobile, show only the most recent 15 data points
-        processedData = data.slice(-15);
+    if (isMobile && data.length > 20) {
+        // On mobile, show only the most recent 20 data points
+        processedData = data.slice(-20);
     }
     
     // Extract labels and values
@@ -989,9 +990,6 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
         return item.value || item.total || item.count || 0;
     });
     
-    console.log(`Chart ${canvasId} - Labels:`, labels);
-    console.log(`Chart ${canvasId} - Values:`, values);
-    
     // Validate processed data
     if (labels.length === 0 || values.length === 0) {
         console.warn(`Empty processed data for chart: ${canvasId}`);
@@ -1001,7 +999,7 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
     
     try {
         // Create gradient
-        const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+        const gradientFill = ctx.createLinearGradient(0, 0, 0, isMobile ? 300 : 400);
         gradientFill.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
         gradientFill.addColorStop(1, 'rgba(102, 126, 234, 0.05)');
         
@@ -1014,14 +1012,14 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
                     data: values,
                     backgroundColor: gradientFill,
                     borderColor: '#667eea',
-                    borderWidth: isMobile ? 2 : 3,
+                    borderWidth: isMobile ? 3 : 3,
                     fill: true,
                     tension: 0.4,
                     pointBackgroundColor: '#667eea',
                     pointBorderColor: '#ffffff',
-                    pointBorderWidth: isMobile ? 1 : 2,
-                    pointRadius: isMobile ? 4 : 6,
-                    pointHoverRadius: isMobile ? 6 : 8,
+                    pointBorderWidth: isMobile ? 2 : 2,
+                    pointRadius: isMobile ? 5 : 6,
+                    pointHoverRadius: isMobile ? 7 : 8,
                 }]
             },
             options: {
@@ -1033,8 +1031,13 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
                 },
                 plugins: {
                     legend: {
-                        display: !isMobile, // Hide legend on mobile to save space
+                        display: !isMobile,
                         position: 'top',
+                        labels: {
+                            font: {
+                                size: isMobile ? 12 : 14
+                            }
+                        }
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -1044,8 +1047,9 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
                         borderWidth: 1,
                         cornerRadius: 8,
                         displayColors: false,
-                        titleFont: { size: isMobile ? 12 : 14 },
-                        bodyFont: { size: isMobile ? 11 : 13 },
+                        titleFont: { size: isMobile ? 14 : 14 },
+                        bodyFont: { size: isMobile ? 13 : 13 },
+                        padding: isMobile ? 12 : 10,
                         callbacks: {
                             label: function(context) {
                                 let value = context.parsed.y;
@@ -1065,18 +1069,22 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
                         grid: { display: false },
                         ticks: {
                             color: '#6c757d',
-                            font: { size: isMobile ? 10 : 12 },
+                            font: { size: isMobile ? 12 : 12 },
                             maxRotation: isMobile ? 45 : 45,
-                            maxTicksLimit: isMobile ? 6 : 10 // Fewer ticks on mobile
+                            maxTicksLimit: isMobile ? 8 : 10
                         }
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        grid: { 
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
                         ticks: {
                             color: '#6c757d',
-                            font: { size: isMobile ? 10 : 12 },
-                            maxTicksLimit: isMobile ? 5 : 8, // Fewer ticks on mobile
+                            font: { size: isMobile ? 12 : 12 },
+                            maxTicksLimit: isMobile ? 6 : 8,
+                            padding: isMobile ? 8 : 6,
                             callback: function(value) {
                                 if (isNaN(value)) return '0';
                                 
@@ -1099,13 +1107,12 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
                     }
                 },
                 animation: {
-                    duration: isMobile ? 1000 : 2000, // Faster animation on mobile
+                    duration: 1500,
                     easing: 'easeInOutQuart'
                 }
             }
         });
         
-        console.log(`Mobile-optimized chart ${canvasId} created successfully`);
         return chart;
         
     } catch (error) {
@@ -1115,7 +1122,7 @@ function createMobileOptimizedChart(canvasId, data, label, type = 'line') {
     }
 }
 
-// Enhanced date formatting (keep existing function)
+// Enhanced date formatting
 function formatDate(dateString, format = 'auto') {
     if (!dateString) return 'N/A';
     
@@ -1124,10 +1131,9 @@ function formatDate(dateString, format = 'auto') {
         if (isNaN(date.getTime())) return dateString;
         
         if (format === 'auto') {
-            // Auto-detect format based on date string or use default
             if (dateString.includes('week')) {
                 return 'Week of ' + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            } else if (dateString.length <= 7) { // YYYY-MM format
+            } else if (dateString.length <= 7) {
                 return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             } else {
                 return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -1158,7 +1164,6 @@ function formatDateMobile(dateString) {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return dateString;
         
-        // Very short format for mobile
         return date.toLocaleDateString('en-US', { 
             month: 'numeric', 
             day: 'numeric' 
@@ -1175,20 +1180,9 @@ function addScrollIndicators() {
     
     chartGrids.forEach(grid => {
         if (window.innerWidth <= 768) {
-            // Add scroll indicator
             if (!grid.querySelector('.scroll-indicator')) {
                 const indicator = document.createElement('div');
                 indicator.className = 'scroll-indicator';
-                indicator.innerHTML = '← Swipe to see more charts →';
-                indicator.style.cssText = `
-                    position: absolute;
-                    top: -30px;
-                    right: 0;
-                    font-size: 0.8rem;
-                    color: #6c757d;
-                    font-style: italic;
-                    z-index: 10;
-                `;
                 grid.parentElement.style.position = 'relative';
                 grid.parentElement.appendChild(indicator);
             }
@@ -1201,9 +1195,7 @@ function handleResize() {
     clearTimeout(window.resizeTimeout);
     window.resizeTimeout = setTimeout(() => {
         const isMobile = window.innerWidth <= 768;
-        console.log('Window resized, mobile mode:', isMobile);
         
-        // Re-initialize charts with mobile optimization
         if (window.dashboardCharts) {
             Object.values(window.dashboardCharts).forEach(chart => {
                 if (chart && typeof chart.destroy === 'function') {
@@ -1212,17 +1204,13 @@ function handleResize() {
             });
         }
         
-        // Re-initialize
         initializeMobileCharts();
         addScrollIndicators();
     }, 300);
 }
 
-// Mobile-optimized chart initialization
+// Immediate chart initialization
 function initializeMobileCharts() {
-    console.log('Starting mobile-optimized chart initialization...');
-    
-    // Store chart instances globally for cleanup
     window.dashboardCharts = {};
     
     // Load data from Django JSON scripts
@@ -1233,7 +1221,7 @@ function initializeMobileCharts() {
     const weeklyOrdersData = getDjangoData('weekly-orders-data');
     const monthlyOrdersData = getDjangoData('monthly-orders-data');
     
-    // Create all charts with mobile optimization
+    // Create all charts immediately
     window.dashboardCharts.dailyRevenue = createMobileOptimizedChart('dailyRevenueChart', dailyRevenueData, 'Daily Revenue');
     window.dashboardCharts.weeklyRevenue = createMobileOptimizedChart('weeklyRevenueChart', weeklyRevenueData, 'Weekly Revenue');
     window.dashboardCharts.monthlyRevenue = createMobileOptimizedChart('monthlyRevenueChart', monthlyRevenueData, 'Monthly Revenue');
@@ -1241,10 +1229,9 @@ function initializeMobileCharts() {
     window.dashboardCharts.weeklyOrders = createMobileOptimizedChart('weeklyOrdersChart', weeklyOrdersData, 'Weekly Orders');
     window.dashboardCharts.monthlyOrders = createMobileOptimizedChart('monthlyOrdersChart', monthlyOrdersData, 'Monthly Orders');
     
-    // Add scroll indicators
-    setTimeout(addScrollIndicators, 100);
+    addScrollIndicators();
     
-    console.log('Mobile-optimized chart initialization completed');
+
 }
 
 // Helper function to show "No Data" message
@@ -1252,7 +1239,7 @@ function showNoDataMessage(canvas, message) {
     const ctx = canvas.getContext('2d');
     
     if (!canvas.width || !canvas.height) {
-        canvas.width = canvas.offsetWidth || 500;
+        canvas.width = canvas.offsetWidth || 350;
         canvas.height = canvas.offsetHeight || 300;
     }
     
@@ -1269,7 +1256,7 @@ function showNoDataMessage(canvas, message) {
     
     // Border
     ctx.strokeStyle = '#dee2e6';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
     ctx.strokeRect(0, 0, canvas.width, canvas.height);
     
     // Message
@@ -1282,10 +1269,10 @@ function showNoDataMessage(canvas, message) {
     ctx.fillText('Check console for details', centerX, centerY + 25);
 }
 
-// Initialize when DOM is ready
+// Initialize immediately when DOM is ready - no delays
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, starting mobile-optimized chart initialization...');
-    setTimeout(initializeMobileCharts, 500);
+
+    initializeMobileCharts();
     
     // Add resize listener
     window.addEventListener('resize', handleResize);
@@ -1295,8 +1282,8 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('load', function() {
     if (!window.chartsInitialized) {
         window.chartsInitialized = true;
-        console.log('Window loaded, initializing mobile-optimized charts as backup...');
-        setTimeout(initializeMobileCharts, 500);
+
+        initializeMobileCharts();
     }
 });
 

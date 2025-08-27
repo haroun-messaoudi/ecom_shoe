@@ -19,7 +19,11 @@ class OrderItemInline(admin.StackedInline):
         'get_product_color',
     )
     readonly_fields = ('price', 'get_product_name', 'get_product_size', 'get_product_color')
-
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("product_variant__product")
+    
     def get_product_name(self, item_obj):
         return item_obj.product_variant.product.name if item_obj.product_variant else "-"
     get_product_name.short_description = 'Product'
@@ -100,7 +104,8 @@ class OrderAdmin(admin.ModelAdmin):
     date_hierarchy = 'order_date'
     actions = [mark_as_accepted, mark_as_rejected]
     inlines = [OrderItemInline]
-
+    list_per_page = 25
+    list_max_show_all = 200
     def get_queryset(self, request):
         qs = super().get_queryset(request).annotate(
             _status_order=Case(
@@ -110,10 +115,10 @@ class OrderAdmin(admin.ModelAdmin):
                 output_field=IntegerField(),
             )
         )
-
-        return qs.prefetch_related(
-            Prefetch('items', queryset=OrderItem.objects.select_related('product_variant__product'))
-        ).order_by('_status_order', '-order_date')
+        return qs.order_by('_status_order', '-order_date')
+        # return qs.prefetch_related(
+        #     Prefetch('items', queryset=OrderItem.objects.select_related('product_variant__product'))
+        # ).order_by('_status_order', '-order_date')
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
